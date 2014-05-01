@@ -35,7 +35,9 @@ void Cube::CreateVerticesForQuad(Vector lightPos)
 	for(it = edgeTable.begin(); it != edgeTable.end(); it++)
 	{
 		ShadowVertices[counter++] = *(it->second.first);
-		TranslatePointOnVector(*(it->second.first), lightPos, &ShadowVertices[counter], 0.1f);
+        Vector InvLightPos;
+        ScaleVector(&lightPos, -1, &InvLightPos);
+		TranslatePointOnVector(*(it->second.first), InvLightPos, &ShadowVertices[counter], 0.1f);
 		counter++;
 		ShadowVertices[counter++] = *(it->second.second);
 
@@ -52,7 +54,6 @@ void Cube::CreateVerticesForQuad(Vector lightPos)
 
 void Cube::Create()
 {
-	lightChanged = true;
 	ModelMatrix = IDENTITY_MATRIX;   
 	TranslateMatrix(&ModelMatrix, 0.0f, 0.0f, 0.0f);
 	//ScaleMatrix(&ModelMatrix, 0.01f, 0.01f, 0.01f);
@@ -65,7 +66,7 @@ void Cube::Create()
 	DirectLightColour.Color[3] = 0.1f;
 
 	objLoader *objData = new objLoader();
-	objData->load("teapot.obj");
+	objData->load("Models\\teapot.obj");
 	
 	Vector TexTea[530];
 	float Color[4] = {0,0,0.5,1};
@@ -142,8 +143,8 @@ void Cube::Create()
 	ShaderIds[0] = glCreateProgram();
 	ExitOnGLError("ERROR: Could not create the shader program");
 	
-	ShaderIds[1] = LoadShader("AmbientLight.fragment.glsl", GL_FRAGMENT_SHADER);
-	ShaderIds[2] = LoadShader("AmbientLight.vertex.glsl", GL_VERTEX_SHADER);
+	ShaderIds[1] = LoadShader("Shaders\\AmbientLight.fragment.glsl", GL_FRAGMENT_SHADER);
+	ShaderIds[2] = LoadShader("Shaders\\AmbientLight.vertex.glsl", GL_VERTEX_SHADER);
 	glAttachShader(ShaderIds[0], ShaderIds[1]);
 	glAttachShader(ShaderIds[0], ShaderIds[2]);
 	
@@ -153,10 +154,10 @@ void Cube::Create()
 	ShaderIds[3] = glCreateProgram();
 	ExitOnGLError("ERROR: Could not create the shader program");
 	
-	ShaderIds[4] = LoadShader("Texture.fragment.glsl", GL_FRAGMENT_SHADER);
-	ShaderIds[5] = LoadShader("Texture.vertex.glsl", GL_VERTEX_SHADER);
-	glAttachShader(ShaderIds[3], ShaderIds[4]);
-	glAttachShader(ShaderIds[3], ShaderIds[5]);
+    /*ShaderIds[4] = LoadShader("Shaders\\Texture.fragment.glsl", GL_FRAGMENT_SHADER);
+    ShaderIds[5] = LoadShader("Shaders\\Texture.vertex.glsl", GL_VERTEX_SHADER);*/
+	glAttachShader(ShaderIds[3], ShaderIds[1]);
+	glAttachShader(ShaderIds[3], ShaderIds[2]);
 	
 	glLinkProgram(ShaderIds[3]);
 	ExitOnGLError("ERROR: Could not link the shader program");
@@ -171,7 +172,7 @@ void Cube::Create()
 		DirectionLightColourUniformLocation[counter] = glGetUniformLocation(ShaderIds[i], "DirectionLightColour");
 		ViewVectorUniformLocation[counter] = glGetUniformLocation(ShaderIds[i], "ViewVector");
 		MVMatrixUniformLocation[counter] = glGetUniformLocation(ShaderIds[i], "MVMatrix");
-
+        ShinyUniformLocation[counter] = glGetUniformLocation(ShaderIds[i], "shiny");
 		gaussianTextureUnif[counter] = glGetUniformLocation(ShaderIds[i], "gaussianTexture");
 		bumpTextureUnif = glGetUniformLocation(ShaderIds[i], "bumpTexture");
 
@@ -223,8 +224,8 @@ void Cube::Create()
 	ExitOnGLError("ERROR: Could not set VAO attributes");
 	
 	glBindVertexArray(0);
-	string filename = "C:\\Users\\Public\\Sample Pictures\\bartek.JPG";
-	string bumpyFilename = "C:\\Users\\Public\\Sample Pictures\\Tulips.jpg";
+	string filename = "Textures\\horse.png";
+	string bumpyFilename = "Textures\\normal.jpg";
 	SetTexParams(filename, teaTex, teaSampler, 0);
 	glGenSamplers(1, &teaSampler);
 		   glSamplerParameteri(teaSampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -273,8 +274,8 @@ void Cube::CreateShadowPolygons()
 	ShadowShaderIds[0] = glCreateProgram();
 	ExitOnGLError("ERROR: Could not create the shader program");
 	
-	ShadowShaderIds[1] = LoadShader("Shadow.fragment.glsl", GL_FRAGMENT_SHADER);
-	ShadowShaderIds[2] = LoadShader("Shadow.vertex.glsl", GL_VERTEX_SHADER);
+	ShadowShaderIds[1] = LoadShader("Shaders\\Shadow.fragment.glsl", GL_FRAGMENT_SHADER);
+	ShadowShaderIds[2] = LoadShader("Shaders\\Shadow.vertex.glsl", GL_VERTEX_SHADER);
 	glAttachShader(ShadowShaderIds[0], ShadowShaderIds[1]);
 	ExitOnGLError("ERROR: Could not attach the fragmetn shader program");
 	glAttachShader(ShadowShaderIds[0], ShadowShaderIds[2]);
@@ -478,7 +479,7 @@ void Cube::Draw(int shader, int location)
 		glStencilFunc(GL_NOTEQUAL, 0x0, 0xff);
 		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);*/
 	}
-	GLenum readFBOstat1 = glCheckFramebufferStatus(GL_READ_FRAMEBUFFER_EXT);
+	//GLenum readFBOstat1 = glCheckFramebufferStatus(GL_READ_FRAMEBUFFER_EXT);
 
 	glUseProgram(ShaderIds[shader]);
 		ExitOnGLError("ERROR: Could not use the shader program - Cube");
@@ -497,6 +498,10 @@ void Cube::Draw(int shader, int location)
 		glUniform3fv(DirectionLightUniformLocation[location], 1, (state.GetLightDirection()).v);
 		glUniform4fv(DirectionLightColourUniformLocation[location], 1, DirectLightColour.Color);
 		glUniform3fv(ViewVectorUniformLocation[location], 1, ViewVect.v);
+        bool shiny = false;
+        if (shader == 3)
+            shiny = true;
+        glUniform1i(ShinyUniformLocation[location], shiny);
 		glUniform1i(gaussianTextureUnif[location], 0);
 		glUniform1i(bumpTextureUnif, 1);
 	  
@@ -522,30 +527,6 @@ void Cube::Draw(int shader, int location)
 			ExitOnGLError("ERROR: Could not draw the cube");
 			glBindTexture(GL_TEXTURE_2D, 0); /* Binding of texture name */
 		glBindVertexArray(0);
-		
-		
-		//char * buffer = new char[1220 * 650 * 32 * 4 ];
-		//
-		//memset(buffer, 0, width * height * 4 * sizeof( GL_INT ));
-		//GLuint depthRBO = 0;
-		//glGenRenderbuffers(1, &depthRBO);
-		//// bind the texture
-		//glBindRenderbuffer(GL_RENDERBUFFER, depthRBO);
-		//
-		//err = glGetError();
-
-		// Create and bind a new framebuffer from which glReadPixels can be read out
-	/*	GLuint readFbo = 0;
-		glGenFramebuffersEXT( 1, &readFbo );
-		glBindFramebufferEXT( GL_READ_FRAMEBUFFER_EXT, outFramebuffer );
-		GLenum readFBOstat = glCheckFramebufferStatus(GL_READ_FRAMEBUFFER_EXT);
-		err = glGetError();
-		glBindFramebufferEXT( GL_DRAW_FRAMEBUFFER_EXT, readFbo );
-		GLenum drawFBOstat = glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER_EXT);
-		err = glGetError();
-		glBlitFramebufferEXT(0, 0, (GLsizei)width, (GLsizei)height, 0, 0, (GLsizei)width, (GLsizei)height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-		err = glGetError();*/
-		//glDisable(GL_MULTISAMPLE);
 	glUseProgram(0);
 	if(shader == 3)
 	{
@@ -557,12 +538,13 @@ void Cube::Draw(int shader, int location)
 
 void Cube::DrawShadow()
 {
-	if(lightChanged){
+	if(state.lightChanged){
 		FindSilhouette(surfaceNorm, surfaceVertex,  INDICES, VERTICES, state.GetLightDirection(), countUniq);
 		CreateVerticesForQuad(state.GetLightDirection());
-		lightChanged = false;
+		state.lightChanged = false;
 	}
 	//UPDATE THE BUFFER INFORMATION
+  //  glDepthFunc(GL_LESS);
 	glBindBuffer(GL_ARRAY_BUFFER, ShadowBufferIds[1]);
 	ExitOnGLError("ERROR: Could not bind buffers");
 	glBufferData(GL_ARRAY_BUFFER, sizeof(ShadowVertices[0])* countUniq, ShadowVertices, GL_STATIC_DRAW);
@@ -574,7 +556,7 @@ void Cube::DrawShadow()
 	//glDepthMask(0);
 	
 	glStencilFunc(GL_ALWAYS, 0, 1);
-	glEnable(GL_CULL_FACE);
+//	glEnable(GL_CULL_FACE);
 
 	glUseProgram(ShadowShaderIds[0]);
 	ExitOnGLError("use");
@@ -590,8 +572,8 @@ void Cube::DrawShadow()
 		//	glDepthFunc(GL_LESS);
 		//	glColorMask(0,0,0,0); //disable all writing to color buffer
 			glCullFace(GL_BACK);
-		//	glStencilFunc(GL_ALWAYS, 0x0, 0xff);
-		//	glStencilOp(GL_KEEP, GL_KEEP, GL_INCR);
+			glStencilFunc(GL_ALWAYS, 0x0, 0xff);
+			glStencilOp(GL_KEEP, GL_KEEP, GL_INCR);
 			glFrontFace(GL_CW);
 			glDrawArrays(GL_TRIANGLES, 0, extrudedCount);
 			ExitOnGLError("draw");
@@ -599,29 +581,29 @@ void Cube::DrawShadow()
 		 
 			
 		//	glDepthFunc(GL_GREATER);
-		//	glCullFace(GL_FRONT);
-		//	glStencilFunc(GL_ALWAYS, 0x0, 0xff);
-		//	glStencilOp(GL_KEEP, GL_KEEP, GL_DECR);
+			glCullFace(GL_FRONT);
+			glStencilFunc(GL_ALWAYS, 0x0, 0xff);
+			glStencilOp(GL_KEEP, GL_KEEP, GL_DECR);
 			glFrontFace(GL_CW);
 			glDrawArrays(GL_TRIANGLES, 0, extrudedCount);
 			ExitOnGLError("draw");
 		//	glColorMask(1,1,1,1);
 
-		//	glStencilFunc(GL_EQUAL, 0x0, 0xff);
-		//	glCullFace(GL_BACK);
-		//	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+		/*	glStencilFunc(GL_EQUAL, 0x0, 0xff);
+			glCullFace(GL_BACK);
+			glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 			glFrontFace(GL_CW);
 			glDrawArrays(GL_TRIANGLES, 0, countUniq);
-			ExitOnGLError("draw");
+			ExitOnGLError("draw");*/
 
 		
 	glBindVertexArray(0);
 	glUseProgram(0);
 	//glDepthMask(1);
-	glDepthFunc(GL_LESS);
+//	glDepthFunc(GL_LESS);
 	
-	glClear(GL_DEPTH_BUFFER_BIT);
-	glDisable(GL_STENCIL_TEST);
+//	glClear(GL_DEPTH_BUFFER_BIT);
+//	glDisable(GL_STENCIL_TEST);
 }
 
 

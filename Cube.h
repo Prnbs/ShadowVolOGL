@@ -25,7 +25,6 @@ public:
 	GLuint ShadowBufferIds[3];
 	GLuint ShadowShaderIds[3];
 	GLuint outRenderbuffer, outFramebuffer;
-	bool lightChanged;
 	int err;
     
 	ILuint texid;

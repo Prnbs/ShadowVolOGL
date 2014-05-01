@@ -14,7 +14,8 @@ public:
 		ViewMatrixUniformLocation[2],
 		ModelMatrixUniformLocation[2],
 		MVMatrixUniformLocation[2],
-		ViewVectorUniformLocation[2];
+		ViewVectorUniformLocation[2],
+        ShinyUniformLocation[2];
 
 	GLuint BufferIds[3];
 	GLuint ShaderIds[6];

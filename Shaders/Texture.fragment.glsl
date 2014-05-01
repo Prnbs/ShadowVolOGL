@@ -4,11 +4,11 @@ in vec3 FragNormal;
 in vec4 FragPosition;
 in vec3 DirectionLightEye;
 in vec3 TexPosn;
-in vec4 inColour;
+out vec4 inColour;
 out vec4 out_Color;
 
 uniform vec4 DirectionLightColour;
-uniform vec3 ViewVector;
+#uniform vec3 ViewVector;
 uniform sampler2D gaussianTexture;
 uniform sampler2D bumpTexture;
   
@@ -33,6 +33,7 @@ void main(void)
 	vec4 guassianTerm = texture(gaussianTexture, vec2(TexPosn));
 	
 	vec3 col = mix(ambcolor.rgb, guassianTerm.rgb, guassianTerm.a);
-	out_Color =  vec4(col, ambcolor.a) + specHighlight;// + ambLight;
+	//out_Color =  vec4(col, ambcolor.a) + specHighlight;// + ambLight;
+    out_Color = vec4(1.0, 1.0, 0, 0);
 	
 }

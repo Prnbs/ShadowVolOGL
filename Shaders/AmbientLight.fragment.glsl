@@ -4,13 +4,14 @@ in vec3 FragNormal;
 in vec4 FragPosition;
 in vec3 DirectionLightEye;
 in vec3 TexPosn;
-out vec4 inColour;
+//out vec4 inColour;
 out vec4 out_Color;
 
 uniform vec4 DirectionLightColour;
 uniform vec3 ViewVector;
 uniform sampler2D gaussianTexture;
 uniform sampler2D bumpTexture;
+uniform bool shiny;
   
 void main(void)
 {
@@ -25,11 +26,15 @@ void main(void)
 	
 	vec4 ambcolor = max( dot(normalize(DirectionLightEye), n), 0.3 ) * DirectionLightColour ;
 	ambcolor = ambcolor;// + inColour;
+    vec4 specHighlight = pow( max( dot(r,v), 0.0 ), shininess ) * specColor;
 	
 	vec2 texCoord = normalize(FragPosition.xy);
 	vec4 guassianTerm = texture(gaussianTexture, vec2(TexPosn));
 	
 	vec3 col = mix(ambcolor.rgb, guassianTerm.rgb, guassianTerm.a);
-	out_Color =  vec4(col, ambcolor.a) * 0.5;
+    if (shiny)
+        out_Color =  vec4(col, ambcolor.a) + specHighlight;
+	else
+        out_Color =  vec4(col, ambcolor.a) * 0.5;
 	
 }

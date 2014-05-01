@@ -24,7 +24,7 @@ void World::DrawBodies()
 	for(iter = world.begin(); iter != world.end(); iter++)
 	{
 		(*iter)->Draw(0, 0);//ambient
-	}
+	}  
 	for(iter = world.begin(); iter != world.end(); iter++)
 	{
 		(*iter)->Draw(3, 1);//diffuse
@@ -38,7 +38,6 @@ void World::CreateBodies()
 
 	cube->Create();
 	grid->Create();
-	
 	
 	world.push_back(cube);
 	world.push_back(grid);

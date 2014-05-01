@@ -89,18 +89,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="AmbientLight.fragment.glsl" />
-    <None Include="AmbientLight.vertex.glsl" />
-    <None Include="Cubemap.fragment.glsl" />
-    <None Include="Cubemap.vertex.glsl" />
-    <None Include="Phong.fragment.glsl" />
-    <None Include="Phong.vertex.glsl" />
-    <None Include="Shadow.fragment.glsl" />
-    <None Include="Shadow.vertex.glsl" />
-    <None Include="Texture.fragment.glsl" />
-    <None Include="Texture.vertex.glsl" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="Body.cpp" />
     <ClCompile Include="Cube.cpp" />
     <ClCompile Include="CurrentState.cpp" />
@@ -124,6 +112,18 @@
     <ClInclude Include="string_extra.h" />
     <ClInclude Include="Utils.h" />
     <ClInclude Include="World.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\AmbientLight.fragment.glsl" />
+    <None Include="Shaders\AmbientLight.vertex.glsl" />
+    <None Include="Shaders\Cubemap.fragment.glsl" />
+    <None Include="Shaders\Cubemap.vertex.glsl" />
+    <None Include="Shaders\Phong.fragment.glsl" />
+    <None Include="Shaders\Phong.vertex.glsl" />
+    <None Include="Shaders\Shadow.fragment.glsl" />
+    <None Include="Shaders\Shadow.vertex.glsl" />
+    <None Include="Shaders\Texture.fragment.glsl" />
+    <None Include="Shaders\Texture.vertex.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

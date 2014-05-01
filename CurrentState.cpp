@@ -8,6 +8,7 @@ Matrix CurrentState::ProjectionMatrix = IDENTITY_MATRIX;
 Matrix CurrentState::ViewMatrix = IDENTITY_MATRIX;
 clock_t CurrentState::LastTime = 0;
 Vector CurrentState::LightDir = ORIGIN;
+bool CurrentState::lightChanged = true;
 
 Vector CurrentState::GetEye()
 {

@@ -47,8 +47,8 @@ World world;
 int main(int argc, char* argv[])
 {
 	Vector DirectLight;
-	DirectLight.v[0] = 0.1f;
-	DirectLight.v[1] = -0.4f;
+	DirectLight.v[0] = 10.1f;
+	DirectLight.v[1] = 10.4f;
 	DirectLight.v[2] = 0.1f;
 
 	state.SetLightDirection(DirectLight);
@@ -280,20 +280,24 @@ void KeyboardFunction(unsigned char Key, int X, int Y)
 				state.SetViewMatrix(ViewMatrix);
 				break;
 			}
-		case 'l':
+		case 'o':
+        case 'O':
 			{
 				LightDir = state.GetLightDirection();
 				LightDir.v[0] -= 0.1;
 				state.SetLightDirection(LightDir);
-				PrintVector(LightDir);
+				//PrintVector(LightDir);
+                state.lightChanged = true;
 				break;
 			}
+        case 'l':
 		case 'L':
 			{
 				LightDir = state.GetLightDirection();
 				LightDir.v[0] += 0.1;
 				state.SetLightDirection(LightDir);
-				PrintVector(LightDir);
+                state.lightChanged = true;
+				//PrintVector(LightDir);
 				break;
 			}
 		case 'k':

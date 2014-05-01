@@ -71,10 +71,11 @@ void TranslatePointOnVector(Vertex v, Vector vec, Vertex* result, float distance
 {
 	Vector slope = ORIGIN;
 	CreateVector(v, vec, &slope);
-	std::cout << "\n slope\n";
-	PrintVector(slope);
-	std::cout << "\n light dir\n";
-	PrintVector(vec);
+    
+	/*std::cout << "\n slope\n";
+	PrintVector(slope);*/
+	//std::cout << "\n light dir\n";
+	//PrintVector(vec);
 	//result->Position[0] = v.Position[0] + (distance * slope.v[0]);
 	//result->Position[1] = v.Position[1] + (distance * slope.v[1]);
 	//result->Position[2] = v.Position[2] + (distance * slope.v[2]);
@@ -255,6 +256,13 @@ void CreateVector1(Vertex a, Vector b, Vector* res)
 	res->v[1] = -1 * a.Position[1] + b.v[1];
 	res->v[2] = -1 * a.Position[2] + b.v[2];
 }
+
+void ScaleVector(Vector *vect, float scale, Vector *result){
+    result->v[0] = vect->v[0]*scale;
+    result->v[1] = vect->v[1]*scale;
+    result->v[2] = vect->v[2]*scale;
+}
+
 
 void Add(Vector a, Vector b, Vector* res)
 {

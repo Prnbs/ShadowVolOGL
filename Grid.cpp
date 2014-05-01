@@ -7,13 +7,26 @@ void Grid::Create()
 	DirectLightColour.Color[1] = 0.0f;
 	DirectLightColour.Color[2] = 0.0f;
 	DirectLightColour.Color[3] = 0.1f;
+    for(int i = 0; i < 6; i++)
+     ShaderIds[i] = 20;
+    for(int i= 0 ; i < 2; i ++)
+    {
+        ModelMatrixUniformLocation[i] = 20;
+        ViewMatrixUniformLocation[i] = 20;
+        ProjectionMatrixUniformLocation[i] = 20;
+        DirectionLightUniformLocation[i] = 20;
+        DirectionLightColourUniformLocation[i] = 20;
+        ViewVectorUniformLocation[i] = 20;
+        MVMatrixUniformLocation[i] = 20;
+        gaussianTextureUnif[i] = 20;
+    }
 
-	Vertex Grid[(SEGMENT+1) * (SEGMENT+1)]; 
-	Vector Tex[(SEGMENT+1) * (SEGMENT+1)];
+	Vertex Grid[(SEGMENT+2) * (SEGMENT+2)]; 
+	Vector Tex[(SEGMENT+2) * (SEGMENT+2)];
 	int n = 0;
-	for(int i = 0; i <= SEGMENT-1; i++)
+	for(int i = 0; i <= SEGMENT; i++)
 	{
-		for(int j = 0; j <= SEGMENT-1; j++)
+		for(int j = 0; j <= SEGMENT; j++)
 		{
 			Grid[n].Position[0] = (float)i - SEGMENT/2;
 			Grid[n].Position[1] = -1.0f;
@@ -35,8 +48,10 @@ void Grid::Create()
 
 	ShaderIds[0] = glCreateProgram();
 	ExitOnGLError("ERROR: Could not create the shader program");
-	ShaderIds[1] = LoadShader("AmbientLight.fragment.glsl", GL_FRAGMENT_SHADER);
-	ShaderIds[2] = LoadShader("AmbientLight.vertex.glsl", GL_VERTEX_SHADER);
+    ShaderIds[1] = LoadShader("Shaders\\AmbientLight.fragment.glsl", GL_FRAGMENT_SHADER);
+    ShaderIds[2] = LoadShader("Shaders\\AmbientLight.vertex.glsl", GL_VERTEX_SHADER);
+    /*  ShaderIds[1] = LoadShader("Shaders\\Texture.fragment.glsl", GL_FRAGMENT_SHADER);
+    ShaderIds[2] = LoadShader("Shaders\\Texture.fragment.glsl", GL_VERTEX_SHADER);*/
 	glAttachShader(ShaderIds[0], ShaderIds[1]);
 	glAttachShader(ShaderIds[0], ShaderIds[2]);
 	
@@ -46,10 +61,10 @@ void Grid::Create()
 	ShaderIds[3] = glCreateProgram();
 	ExitOnGLError("ERROR: Could not create the shader program");
 	
-	ShaderIds[4] = LoadShader("Texture.fragment.glsl", GL_FRAGMENT_SHADER);
-	ShaderIds[5] = LoadShader("Texture.vertex.glsl", GL_VERTEX_SHADER);
-	glAttachShader(ShaderIds[3], ShaderIds[4]);
-	glAttachShader(ShaderIds[3], ShaderIds[5]);
+	//ShaderIds[4] = LoadShader("Shaders\\Texture.fragment.glsl", GL_FRAGMENT_SHADER);
+	//ShaderIds[5] = LoadShader("Shaders\\Texture.fragment.glsl", GL_VERTEX_SHADER);
+	glAttachShader(ShaderIds[3], ShaderIds[1]);
+	glAttachShader(ShaderIds[3], ShaderIds[2]);
 	
 	glLinkProgram(ShaderIds[3]);
 	ExitOnGLError("ERROR: Could not link the shader program- Tex");
@@ -58,15 +73,21 @@ void Grid::Create()
 	for(int i = 0; i < 4; i+=3)
 	{
 		ModelMatrixUniformLocation[count] = glGetUniformLocation(ShaderIds[i], "ModelMatrix");
+        ExitOnGLError("ERROR: Could not get shader uniform locations -- ModelMatrix");
 		ViewMatrixUniformLocation[count] = glGetUniformLocation(ShaderIds[i], "ViewMatrix");
+        ExitOnGLError("ERROR: Could not get shader uniform locations -- ViewMatrix");
 		ProjectionMatrixUniformLocation[count] = glGetUniformLocation(ShaderIds[i], "ProjectionMatrix");
+        MVMatrixUniformLocation[count] = glGetUniformLocation(ShaderIds[i], "MVMatrix");
+        ExitOnGLError("ERROR: Could not get shader uniform locations -- MVMatrixUniformLocation");
 		DirectionLightUniformLocation[count] = glGetUniformLocation(ShaderIds[i], "DirectionLight");
-		DirectionLightColourUniformLocation[count] = glGetUniformLocation(ShaderIds[i], "DirectionLightColour");
-		ViewVectorUniformLocation[count] = glGetUniformLocation(ShaderIds[i], "ViewVector");
-		MVMatrixUniformLocation[count] = glGetUniformLocation(ShaderIds[i], "MVMatrix");
-
+        ExitOnGLError("ERROR: Could not get shader uniform locations -- DirectionLightUniformLocation");
+        DirectionLightColourUniformLocation[count] = glGetUniformLocation(ShaderIds[i], "DirectionLightColour");
+        ExitOnGLError("ERROR: Could not get shader uniform locations -- DirectionLightColour");
+         /*ViewVectorUniformLocation[count] = glGetUniformLocation(ShaderIds[i], "ViewVector");
+         ExitOnGLError("ERROR: Could not get shader uniform locations -- ViewVectorUniformLocation");*/
+		ShinyUniformLocation[count] = glGetUniformLocation(ShaderIds[i], "shiny");
 		gaussianTextureUnif[count] = glGetUniformLocation(ShaderIds[i], "gaussianTexture");
-
+         ExitOnGLError("ERROR: Could not get shader uniform locations -- gaussianTextureUnif");
 		ExitOnGLError("ERROR: Could not get shader uniform locations -- ");
 		count++;
 	}
@@ -142,7 +163,7 @@ void Grid::Create()
 
 	glBindVertexArray(0);
 
-	string filename = "C:\\Users\\Public\\Sample Pictures\\Jellyfish.jpg";
+	string filename = "Textures\\Jellyfish.jpg";
 	
 	glGenSamplers(1, &g_gaussSampler);
 		   glSamplerParameteri(g_gaussSampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -214,10 +235,10 @@ void Grid::Draw(int shader, int location)
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CCW);
-	
+	//glDepthMask(0);
 	if(shader == 3)
 	{
-		glDepthMask(0);
+		//glDepthMask(0);
 		glDepthFunc(GL_EQUAL);
 		glEnable(GL_STENCIL_TEST);
 		glStencilFunc(GL_EQUAL, 0x0, 0xff);
@@ -232,9 +253,13 @@ void Grid::Draw(int shader, int location)
 		glUniformMatrix4fv(ProjectionMatrixUniformLocation[location], 1, GL_FALSE, state.GetProjectionMatrix().m);
 		glUniform3fv(DirectionLightUniformLocation[location], 1, (state.GetLightDirection()).v);
 		glUniform4fv(DirectionLightColourUniformLocation[location], 1, DirectLightColour.Color);
-		glUniform3fv(ViewVectorUniformLocation[location], 1, ViewVect.v);
+	//	glUniform3fv(ViewVectorUniformLocation[location], 1, ViewVect.v);
+     //   std::cout << location << " - " << DirectionLightUniformLocation[location] << std::endl;
 		glUniform1i(gaussianTextureUnif[location], 0);
-	  
+        bool shiny = false;
+        if (shader == 3)
+            shiny = true;
+        glUniform1i(ShinyUniformLocation[location], shiny);
 		Matrix MV = MultiplyMatrices(&(state.GetViewMatrix()), &ModelMatrix);
 		Matrix MVInv = TransposeMatrix(&(InverseMatrix(&MV)));
 		glUniformMatrix4fv(MVMatrixUniformLocation[location], 1, GL_FALSE, MVInv.m);
@@ -255,7 +280,7 @@ void Grid::Draw(int shader, int location)
 	glUseProgram(0);
 	if(shader == 3)
 	{
-		glDepthMask(1);
+		//glDepthMask(1);
 		glDepthFunc(GL_LESS);
 		glDisable(GL_STENCIL_TEST);
 	}

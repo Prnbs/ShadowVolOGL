@@ -13,6 +13,7 @@ public:
 	static clock_t 
 				LastTime;
 	static Vector LightDir;
+    static bool lightChanged;
 
     Vector GetEye();
 	Vector GetLookAt();

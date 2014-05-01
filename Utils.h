@@ -103,7 +103,7 @@ void PrintVertex(Vertex);
 void PrintVector(Vector);
 void FindSurfaceVertex(Vertex v1, Vertex v2, Vertex v3, Vertex result);
 void TranslatePointOnVector(Vertex v, Vector vec, Vertex* result, float dist);
-
+void ScaleVector(Vector *vect, float scale, Vector *result);
 Matrix CreateProjectionMatrix(
 	float fovy,
 	float aspect_ratio,
