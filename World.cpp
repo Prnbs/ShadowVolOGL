@@ -17,14 +17,19 @@ int World::TotalBodies()
 
 void World::DrawBodies()
 {
+    glClear(GL_DEPTH_BUFFER_BIT);
+    for(iter = world.begin(); iter != world.end(); iter++)
+    {
+        (*iter)->Draw(0, 0);//ambient
+    }  
+    glDepthMask(GL_FALSE);
 	for(iter = world.begin(); iter != world.end(); iter++)
 	{
+        //glClear(GL_STENCIL_BUFFER_BIT);
 		(*iter)->DrawShadow();
 	}
-	for(iter = world.begin(); iter != world.end(); iter++)
-	{
-		(*iter)->Draw(0, 0);//ambient
-	}  
+    glDepthMask(GL_TRUE);
+    //glClear(GL_DEPTH_BUFFER_BIT);
 	for(iter = world.begin(); iter != world.end(); iter++)
 	{
 		(*iter)->Draw(3, 1);//diffuse

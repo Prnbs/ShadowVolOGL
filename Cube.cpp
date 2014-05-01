@@ -544,7 +544,7 @@ void Cube::DrawShadow()
 		state.lightChanged = false;
 	}
 	//UPDATE THE BUFFER INFORMATION
-  //  glDepthFunc(GL_LESS);
+    glDepthFunc(GL_LESS);
 	glBindBuffer(GL_ARRAY_BUFFER, ShadowBufferIds[1]);
 	ExitOnGLError("ERROR: Could not bind buffers");
 	glBufferData(GL_ARRAY_BUFFER, sizeof(ShadowVertices[0])* countUniq, ShadowVertices, GL_STATIC_DRAW);
@@ -552,58 +552,47 @@ void Cube::DrawShadow()
 
 	glEnable(GL_STENCIL_TEST);
 	glClearStencil(0);
-
-	//glDepthMask(0);
-	
 	glStencilFunc(GL_ALWAYS, 0, 1);
-//	glEnable(GL_CULL_FACE);
 
 	glUseProgram(ShadowShaderIds[0]);
 	ExitOnGLError("use");
-		//glFrontFace(GL_CW);
-		glUniformMatrix4fv(ShadowModelMatrixUniformLocation, 1, GL_FALSE, ModelMatrix.m);
-		ExitOnGLError("glUniformMatrix4fv ModelMat");
-		glUniformMatrix4fv(ShadowViewMatrixUniformLocation, 1, GL_FALSE, state.GetViewMatrix().m);
-		ExitOnGLError("glUniformMatrix4fv ViewMat");
-		glUniformMatrix4fv(ShadowProjectionMatrixUniformLocation, 1, GL_FALSE, state.GetProjectionMatrix().m);
-		ExitOnGLError("glUniformMatrix4fv ProjMat");
-		glBindVertexArray(ShadowBufferIds[0]);
+    glUniformMatrix4fv(ShadowModelMatrixUniformLocation, 1, GL_FALSE, ModelMatrix.m);
+    ExitOnGLError("glUniformMatrix4fv ModelMat");
+    glUniformMatrix4fv(ShadowViewMatrixUniformLocation, 1, GL_FALSE, state.GetViewMatrix().m);
+    ExitOnGLError("glUniformMatrix4fv ViewMat");
+    glUniformMatrix4fv(ShadowProjectionMatrixUniformLocation, 1, GL_FALSE, state.GetProjectionMatrix().m);
+    ExitOnGLError("glUniformMatrix4fv ProjMat");
+    glBindVertexArray(ShadowBufferIds[0]);
 
-		//	glDepthFunc(GL_LESS);
-		//	glColorMask(0,0,0,0); //disable all writing to color buffer
-			glCullFace(GL_BACK);
-			glStencilFunc(GL_ALWAYS, 0x0, 0xff);
-			glStencilOp(GL_KEEP, GL_KEEP, GL_INCR);
-			glFrontFace(GL_CW);
-			glDrawArrays(GL_TRIANGLES, 0, extrudedCount);
-			ExitOnGLError("draw");
-		//	glColorMask(1,1,1,1);
-		 
+	//glColorMask(0,0,0,0); //disable all writing to color buffer
+    glCullFace(GL_BACK);
+    glStencilFunc(GL_ALWAYS, 0x0, 0xff);
+    glStencilOp(GL_KEEP, GL_KEEP, GL_INCR);
+    glFrontFace(GL_CW);
+    glDrawArrays(GL_TRIANGLES, 0, extrudedCount);
+    ExitOnGLError("draw");
+	//	glColorMask(1,1,1,1);
 			
-		//	glDepthFunc(GL_GREATER);
-			glCullFace(GL_FRONT);
-			glStencilFunc(GL_ALWAYS, 0x0, 0xff);
-			glStencilOp(GL_KEEP, GL_KEEP, GL_DECR);
-			glFrontFace(GL_CW);
-			glDrawArrays(GL_TRIANGLES, 0, extrudedCount);
-			ExitOnGLError("draw");
-		//	glColorMask(1,1,1,1);
+//	glDepthFunc(GL_GREATER);
+	glCullFace(GL_FRONT);
+	glStencilFunc(GL_ALWAYS, 0x0, 0xff);
+	glStencilOp(GL_KEEP, GL_KEEP, GL_DECR);
+	glFrontFace(GL_CW);
+	glDrawArrays(GL_TRIANGLES, 0, extrudedCount);
+	ExitOnGLError("draw");
+	//glColorMask(1,1,1,1);
 
-		/*	glStencilFunc(GL_EQUAL, 0x0, 0xff);
-			glCullFace(GL_BACK);
-			glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
-			glFrontFace(GL_CW);
-			glDrawArrays(GL_TRIANGLES, 0, countUniq);
-			ExitOnGLError("draw");*/
-
+/*	glStencilFunc(GL_EQUAL, 0x0, 0xff);
+	glCullFace(GL_BACK);
+	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+	glFrontFace(GL_CW);
+	glDrawArrays(GL_TRIANGLES, 0, countUniq);
+	ExitOnGLError("draw");*/
 		
 	glBindVertexArray(0);
 	glUseProgram(0);
-	//glDepthMask(1);
-//	glDepthFunc(GL_LESS);
 	
-//	glClear(GL_DEPTH_BUFFER_BIT);
-//	glDisable(GL_STENCIL_TEST);
+	glDisable(GL_STENCIL_TEST);
 }
 
 

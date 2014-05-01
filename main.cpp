@@ -221,8 +221,8 @@ void MouseFunction(int X, int Y)
 	RotateAboutY(&ViewMatrix, (float)diffX/6000.0f);
 	state.SetViewMatrix(ViewMatrix);
 
-	glutTimerFunc(1000, ResetMouse, 1);*/
-	
+	glutTimerFunc(1000, ResetMouse, 1);
+	*/
 }
 
 void ResetMouse(int Value)
