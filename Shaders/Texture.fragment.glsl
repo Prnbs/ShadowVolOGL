@@ -8,7 +8,7 @@ out vec4 inColour;
 out vec4 out_Color;
 
 uniform vec4 DirectionLightColour;
-#uniform vec3 ViewVector;
+//uniform vec3 ViewVector;
 uniform sampler2D gaussianTexture;
 uniform sampler2D bumpTexture;
   

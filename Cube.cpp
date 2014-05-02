@@ -65,8 +65,8 @@ void Cube::Create()
 	DirectLightColour.Color[2] = 0.0f;
 	DirectLightColour.Color[3] = 0.1f;
 
-	objLoader *objData = new objLoader();
-	objData->load("Models\\teapot.obj");
+    objLoader *objData = new objLoader();
+    objData->load("Models\\teapot.obj");
 	
 	Vector TexTea[530];
 	float Color[4] = {0,0,0.5,1};
@@ -151,26 +151,26 @@ void Cube::Create()
 	glLinkProgram(ShaderIds[0]);
 	ExitOnGLError("ERROR: Could not link the shader program");
 
-	ShaderIds[3] = glCreateProgram();
-	ExitOnGLError("ERROR: Could not create the shader program");
-	
-    /*ShaderIds[4] = LoadShader("Shaders\\Texture.fragment.glsl", GL_FRAGMENT_SHADER);
-    ShaderIds[5] = LoadShader("Shaders\\Texture.vertex.glsl", GL_VERTEX_SHADER);*/
-	glAttachShader(ShaderIds[3], ShaderIds[1]);
-	glAttachShader(ShaderIds[3], ShaderIds[2]);
-	
-	glLinkProgram(ShaderIds[3]);
-	ExitOnGLError("ERROR: Could not link the shader program");
+    /*ShaderIds[3] = glCreateProgram();
+    ExitOnGLError("ERROR: Could not create the shader program");
+
+    ShaderIds[4] = LoadShader("Shaders\\Texture.fragment.glsl", GL_FRAGMENT_SHADER);
+    ShaderIds[5] = LoadShader("Shaders\\Texture.vertex.glsl", GL_VERTEX_SHADER);
+    glAttachShader(ShaderIds[3], ShaderIds[1]);
+    glAttachShader(ShaderIds[3], ShaderIds[2]);
+
+    glLinkProgram(ShaderIds[3]);
+    ExitOnGLError("ERROR: Could not link the shader program");*/
 
 	int counter = 0;
-	for(int i = 0; i < 4; i+=3)
+	for(int i = 0; i < 4; i+=4)
 	{
 		ModelMatrixUniformLocation[counter] = glGetUniformLocation(ShaderIds[i], "ModelMatrix");
 		ViewMatrixUniformLocation[counter] = glGetUniformLocation(ShaderIds[i], "ViewMatrix");
 		ProjectionMatrixUniformLocation[counter] = glGetUniformLocation(ShaderIds[i], "ProjectionMatrix");
 		DirectionLightUniformLocation[counter] = glGetUniformLocation(ShaderIds[i], "DirectionLight");
 		DirectionLightColourUniformLocation[counter] = glGetUniformLocation(ShaderIds[i], "DirectionLightColour");
-		ViewVectorUniformLocation[counter] = glGetUniformLocation(ShaderIds[i], "ViewVector");
+	//	ViewVectorUniformLocation[counter] = glGetUniformLocation(ShaderIds[i], "ViewVector");
 		MVMatrixUniformLocation[counter] = glGetUniformLocation(ShaderIds[i], "MVMatrix");
         ShinyUniformLocation[counter] = glGetUniformLocation(ShaderIds[i], "shiny");
 		gaussianTextureUnif[counter] = glGetUniformLocation(ShaderIds[i], "gaussianTexture");
@@ -241,28 +241,9 @@ void Cube::Create()
 
 	width = 1220;
 	height = 650;
-	/*glGenRenderbuffersEXT( 1, &outRenderbuffer );
-    glBindRenderbufferEXT( GL_RENDERBUFFER_EXT, outRenderbuffer );
-    */
-    // Allocate storage to the renderbuffer
+
     glGetError();
-	/*glRenderbufferStorageMultisampleEXT( GL_RENDERBUFFER_EXT, 4, GL_RGB10_A2, (GLsizei)width,  (GLsizei)height );
-    err = glGetError();
-    if( err != GL_NO_ERROR )
-    {
-        cout << "Failed to allocate render buffer storage!\n" << endl;
-        return ;
-    }
-	glGenFramebuffersEXT( 1, &outFramebuffer );
-    glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, outFramebuffer );
-	glFramebufferTexture2D(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, 0,0);
-	if( err != GL_NO_ERROR )  
-    {
-        cout << "ERROR: Unable to bind framebuffer" << endl;
-        return ;
-    }
-	GLenum readFBOstat1 = glCheckFramebufferStatus(GL_FRAMEBUFFER_EXT);
-	int k = 0;*/
+	
 	CreateShadowPolygons();
 
 }
@@ -471,17 +452,19 @@ void Cube::Draw(int shader, int location)
 	CubeRotation = 0;
 	CubeAngle = DegreesToRadians(CubeRotation);
 	state.SetLastTime(Now); */
+    location = 0;
 	if(shader == 3)
 	{
-		/*glDepthMask(0);
-		glDepthFunc(GL_EQUAL);*/
-		/*glEnable(GL_STENCIL_TEST);
-		glStencilFunc(GL_NOTEQUAL, 0x0, 0xff);
-		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);*/
+		/*glDepthMask(0);*/
+		glDepthFunc(GL_EQUAL);
+       // glDisable(GL_DEPTH_TEST);
+        /*glEnable(GL_STENCIL_TEST);
+        glStencilFunc(GL_NOTEQUAL, 0x0, 0xff);
+        glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);*/
 	}
-	//GLenum readFBOstat1 = glCheckFramebufferStatus(GL_READ_FRAMEBUFFER_EXT);
-
-	glUseProgram(ShaderIds[shader]);
+    else
+        glDepthFunc(GL_LESS);
+	glUseProgram(ShaderIds[0]);
 		ExitOnGLError("ERROR: Could not use the shader program - Cube");
 
 		glEnable(GL_CULL_FACE);
@@ -497,7 +480,7 @@ void Cube::Draw(int shader, int location)
 		glUniformMatrix4fv(ProjectionMatrixUniformLocation[location], 1, GL_FALSE, state.GetProjectionMatrix().m);
 		glUniform3fv(DirectionLightUniformLocation[location], 1, (state.GetLightDirection()).v);
 		glUniform4fv(DirectionLightColourUniformLocation[location], 1, DirectLightColour.Color);
-		glUniform3fv(ViewVectorUniformLocation[location], 1, ViewVect.v);
+	//	glUniform3fv(ViewVectorUniformLocation[location], 1, ViewVect.v);
         bool shiny = false;
         if (shader == 3)
             shiny = true;
@@ -564,7 +547,7 @@ void Cube::DrawShadow()
     ExitOnGLError("glUniformMatrix4fv ProjMat");
     glBindVertexArray(ShadowBufferIds[0]);
 
-	//glColorMask(0,0,0,0); //disable all writing to color buffer
+	glColorMask(0,0,0,0); //disable all writing to color buffer
     glCullFace(GL_BACK);
     glStencilFunc(GL_ALWAYS, 0x0, 0xff);
     glStencilOp(GL_KEEP, GL_KEEP, GL_INCR);
@@ -580,7 +563,7 @@ void Cube::DrawShadow()
 	glFrontFace(GL_CW);
 	glDrawArrays(GL_TRIANGLES, 0, extrudedCount);
 	ExitOnGLError("draw");
-	//glColorMask(1,1,1,1);
+	glColorMask(1,1,1,1);
 
 /*	glStencilFunc(GL_EQUAL, 0x0, 0xff);
 	glCullFace(GL_BACK);

@@ -58,19 +58,18 @@ void Grid::Create()
 	glLinkProgram(ShaderIds[0]);
 	ExitOnGLError("ERROR: Could not link the shader program - Amb");
 
-	ShaderIds[3] = glCreateProgram();
-	ExitOnGLError("ERROR: Could not create the shader program");
-	
-	//ShaderIds[4] = LoadShader("Shaders\\Texture.fragment.glsl", GL_FRAGMENT_SHADER);
-	//ShaderIds[5] = LoadShader("Shaders\\Texture.fragment.glsl", GL_VERTEX_SHADER);
-	glAttachShader(ShaderIds[3], ShaderIds[1]);
-	glAttachShader(ShaderIds[3], ShaderIds[2]);
-	
-	glLinkProgram(ShaderIds[3]);
-	ExitOnGLError("ERROR: Could not link the shader program- Tex");
-
+	//ShaderIds[3] = glCreateProgram();
+	//ExitOnGLError("ERROR: Could not create the shader program");
+	//
+ //   ShaderIds[4] = LoadShader("Shaders\\Texture.fragment.glsl", GL_FRAGMENT_SHADER);
+ //   ShaderIds[5] = LoadShader("Shaders\\Texture.fragment.glsl", GL_VERTEX_SHADER);
+	//glAttachShader(ShaderIds[3], ShaderIds[1]);
+	//glAttachShader(ShaderIds[3], ShaderIds[2]);
+	//
+	//glLinkProgram(ShaderIds[3]);
+	//ExitOnGLError("ERROR: Could not link the shader program- Tex");
 	int count = 0;
-	for(int i = 0; i < 4; i+=3)
+	for(int i = 0; i < 4; i+=4)
 	{
 		ModelMatrixUniformLocation[count] = glGetUniformLocation(ShaderIds[i], "ModelMatrix");
         ExitOnGLError("ERROR: Could not get shader uniform locations -- ModelMatrix");
@@ -245,7 +244,8 @@ void Grid::Draw(int shader, int location)
 		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 	}
 	//glEnable(GL_MULTISAMPLE);
-	glUseProgram(ShaderIds[shader]);
+    location = 0;
+	glUseProgram(ShaderIds[0]);
 		ExitOnGLError("ERROR: Could not use the shader program");
 
 		glUniformMatrix4fv(ModelMatrixUniformLocation[location], 1, GL_FALSE, ModelMatrix.m);

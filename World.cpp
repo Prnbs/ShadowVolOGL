@@ -18,6 +18,7 @@ int World::TotalBodies()
 void World::DrawBodies()
 {
     glClear(GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
     for(iter = world.begin(); iter != world.end(); iter++)
     {
         (*iter)->Draw(0, 0);//ambient
@@ -29,7 +30,7 @@ void World::DrawBodies()
 		(*iter)->DrawShadow();
 	}
     glDepthMask(GL_TRUE);
-    //glClear(GL_DEPTH_BUFFER_BIT);
+ //   glClear(GL_DEPTH_BUFFER_BIT);
 	for(iter = world.begin(); iter != world.end(); iter++)
 	{
 		(*iter)->Draw(3, 1);//diffuse

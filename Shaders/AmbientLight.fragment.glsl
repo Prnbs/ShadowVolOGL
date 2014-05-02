@@ -8,7 +8,7 @@ in vec3 TexPosn;
 out vec4 out_Color;
 
 uniform vec4 DirectionLightColour;
-uniform vec3 ViewVector;
+//uniform vec3 ViewVector;
 uniform sampler2D gaussianTexture;
 uniform sampler2D bumpTexture;
 uniform bool shiny;
@@ -36,5 +36,5 @@ void main(void)
         out_Color =  vec4(col, ambcolor.a) + specHighlight;
 	else
         out_Color =  vec4(col, ambcolor.a) * 0.5;
-	
+   
 }
