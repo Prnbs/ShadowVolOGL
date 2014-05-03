@@ -37,7 +37,10 @@ typedef struct Vertex
 	float Position[4];
 	float Color[4];
 	int identity;
+   
 } Vertex;
+
+
 
 typedef struct Edge
 {

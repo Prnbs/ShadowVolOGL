@@ -30,7 +30,6 @@ void World::DrawBodies()
 		(*iter)->DrawShadow();
 	}
     glDepthMask(GL_TRUE);
- //   glClear(GL_DEPTH_BUFFER_BIT);
 	for(iter = world.begin(); iter != world.end(); iter++)
 	{
 		(*iter)->Draw(3, 1);//diffuse

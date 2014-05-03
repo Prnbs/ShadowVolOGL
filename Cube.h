@@ -5,6 +5,7 @@
 #include "CurrentState.h"
 #include "Utils.h"
 #include <string>
+#include <vector>
 
 class Cube : public Body
 {
@@ -41,7 +42,7 @@ public:
 	GLsizei height, width, format;
 
 	 Vertex DirectLightColour;
-	 GLuint INDICES[1024 * 3];
+	 std::vector<GLuint> INDICES;
 	 int vert;
 	 float CubeRotation;
 	 void Create();
@@ -56,8 +57,8 @@ public:
 	 void FindMinAndMax(float, float, float);
 	 void SetTexParams(string , GLuint &, GLuint &,GLuint );
 	 string FormEdgeHash(int e1, int e2);
-	 void FindSilhouette(Vector* surfaceNormal, Vertex* surfaceVertex, 
-					  GLuint* indexBuf, Vertex* vertices, Vector lightPos, int size);
+	 void FindSilhouette(std::vector<Vector> surfaceNormal, std::vector<Vertex> surfaceVertex, 
+         std::vector<GLuint> indexBuf, Vertex* vertices, Vector lightPos, int size);
 	 void ColourSilhouette();
 	 void CreateVerticesForQuad(Vector lightPos);
 };

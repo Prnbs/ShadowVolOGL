@@ -4,13 +4,15 @@
 #include <string>
 #include <sstream>
 #include "objLoader.h"
+#include <vector>
 
 map<std::string, Edge> edgeTable;
 map<std::string, Edge>::iterator it;
-Vertex ShadowVertices[20000];
-Vertex VERTICES[530];
-Vector surfaceNorm[1024];
-Vertex surfaceVertex[1024];
+std::vector<Vertex> ShadowVertices;
+std::vector<Vertex> VERTICES;
+Vertex VERTICESCOPY[49990];
+std::vector<Vector> surfaceNorm;
+std::vector<Vertex> surfaceVertex;
 int countUniq = 0;
 int extrudedCount = 0;
 
@@ -18,7 +20,7 @@ void printVector(obj_vector *v)
 {
 	printf("%.2f,", v->e[0] );
 	printf("%.2f,", v->e[1] );
-	printf("%.2f  ", v->e[2] );
+	printf("%.2f  ", v->e[2] ); 
 } 
 
 void printVector(Vector *v)
@@ -32,14 +34,17 @@ void Cube::CreateVerticesForQuad(Vector lightPos)
 {
 	int counter = 0;
 //	cout << "Edge table size = " << edgeTable.size() << endl;
+    ShadowVertices.clear();
 	for(it = edgeTable.begin(); it != edgeTable.end(); it++)
 	{
-		ShadowVertices[counter++] = *(it->second.first);
+		ShadowVertices.push_back(*(it->second.first));
         Vector InvLightPos;
         ScaleVector(&lightPos, -1, &InvLightPos);
-		TranslatePointOnVector(*(it->second.first), InvLightPos, &ShadowVertices[counter], 0.1f);
-		counter++;
-		ShadowVertices[counter++] = *(it->second.second);
+        Vertex result;
+		TranslatePointOnVector(*(it->second.first), InvLightPos, &result, 0.1f);
+        ShadowVertices.push_back(result);
+		ShadowVertices.push_back(*(it->second.second));
+        counter += 3;
 
 	/*	TranslatePointOnVector(*(it->second.first), lightPos, &ShadowVertices[counter], 0.1f);
 		counter++;
@@ -56,7 +61,7 @@ void Cube::Create()
 {
 	ModelMatrix = IDENTITY_MATRIX;   
 	TranslateMatrix(&ModelMatrix, 0.0f, 0.0f, 0.0f);
-	//ScaleMatrix(&ModelMatrix, 0.01f, 0.01f, 0.01f);
+	ScaleMatrix(&ModelMatrix, 500.01f, 500.01f, 500.01f);
 
 	CubeRotation = 0;
 
@@ -66,22 +71,26 @@ void Cube::Create()
 	DirectLightColour.Color[3] = 0.1f;
 
     objLoader *objData = new objLoader();
-    objData->load("Models\\teapot.obj");
+    //objData->load("Models\\bun_zipper.obj");
+
+     objData->load("Models\\teapot.obj");
 	
-	Vector TexTea[530];
+	std::vector<Vector> TexTea;
 	float Color[4] = {0,0,0.5,1};
 	Vector radius;
 	for(int i=0; i<objData->vertexCount; i++)
 	{
-		VERTICES[i].Position[0] = 0.01f * (objData->vertexList[ i ])->e[0];
-		VERTICES[i].Position[1] = 0.01f * (objData->vertexList[ i ])->e[1];
-		VERTICES[i].Position[2] = 0.01f * (objData->vertexList[ i ])->e[2];
-		VERTICES[i].Position[3] = 1.0f;
-		VERTICES[i].Color[0] = Color[0];
-		VERTICES[i].Color[1] = Color[1];
-		VERTICES[i].Color[2] = Color[2];
-		VERTICES[i].Color[3] = Color[3];  
-		VERTICES[i].identity = i;
+        Vertex verData;
+        verData.Position[0] = 0.01f * (objData->vertexList[ i ])->e[0];
+        verData.Position[1] = 0.01f * (objData->vertexList[ i ])->e[1];
+        verData.Position[2] = 0.01f * (objData->vertexList[ i ])->e[2];
+        verData.Position[3] = 1.0f;
+	    verData.Color[0] = Color[0];
+        verData.Color[1] = Color[1];
+        verData.Color[2] = Color[2];
+        verData.Color[3] = Color[3];
+		verData.identity = i;
+		VERTICES.push_back(verData);
 
 		FindMinAndMax(VERTICES[i].Position[0], 
 				VERTICES[i].Position[1], VERTICES[i].Position[2]);
@@ -100,18 +109,21 @@ void Cube::Create()
 		if((X < 0 && Z < 0) || (X > 0 && Z < 0))
 			theta = (2 * 3.14159f) - atan2(-1*Z, X);
 
-		TexTea[i].v[0] = theta/(2 * 3.14159f);
-		TexTea[i].v[1] = (VERTICES[i].Position[1] - Ymax) / (Ymin - Ymax);
+        Vector tempTex;
+        tempTex.v[0] =  theta/(2 * 3.14159f);
+        tempTex.v[1] = (VERTICES[i].Position[1] - Ymax) / (Ymin - Ymax);
+		TexTea.push_back(tempTex);
 	}
 
 	int ctr = 0;
-	cout << objData->faceCount << endl;
+	cout << objData->vertexCount << endl;
 	for(int i=0; i<objData->faceCount; i++)
 	{
 		obj_face *o = objData->faceList[i];
 		for(int j=0; j<3; j++)
 		{
-			INDICES[ctr++] = o->vertex_index[j];
+            ctr++;
+			INDICES.push_back(o->vertex_index[j]);
 		}
 	} 
 	//calculate surface normal
@@ -127,17 +139,24 @@ void Cube::Create()
 		
 		CreateVector(p1,p2,&a);
 		CreateVector(p2,p3,&b);
-		Cross(a, b, &surfaceNorm[countUniq]);
-		FindSurfaceVertex(p1, p2, p3, surfaceVertex[countUniq++]);
+        Vector result;
+		Cross(a, b, &result);
+        surfaceNorm.push_back(result);
+        Vertex surfVertex = p1;
+		FindSurfaceVertex(p1, p2, p3, surfVertex);
+        surfaceVertex.push_back(surfVertex);
+        countUniq++;
 	}
 	cout << "Surf count = " << countUniq << endl;
-	Vector Normals[530];
+	std::vector<Vector> Normals;
 	
 	for(int i=0; i<objData->normalCount; i++)
 	{
-		Normals[i].v[0] = (objData->normalList[i])->e[0];
-		Normals[i].v[1] = (objData->normalList[i])->e[1];
-		Normals[i].v[2] = (objData->normalList[i])->e[2];
+        Vector normal;
+        normal.v[0] = (objData->normalList[i])->e[0];
+        normal.v[1] = (objData->normalList[i])->e[1];
+        normal.v[2] = (objData->normalList[i])->e[2];
+		Normals.push_back(normal);
 	}
     ExitOnGLError("ERROR: before create the shader program");
 	ShaderIds[0] = glCreateProgram();
@@ -195,13 +214,13 @@ void Cube::Create()
 	ExitOnGLError("ERROR: Could not generate the buffer objects");
 
 	glBindBuffer(GL_ARRAY_BUFFER, BufferIds[1]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(VERTICES), VERTICES, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, VERTICES.size() * sizeof(Vertex), &VERTICES[0], GL_STATIC_DRAW);
 	ExitOnGLError("ERROR: Could not bind the VBO to the VAO");
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(VERTICES[0]), (GLvoid*)0);
 	ExitOnGLError("ERROR: Could not set VAO attributes");
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, BufferIds[2]);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(INDICES), INDICES, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, INDICES.size() * sizeof(GLuint), &INDICES[0], GL_STATIC_DRAW);
 	ExitOnGLError("ERROR: Could not bind the IBO to the VAO");
 	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(VERTICES[0]), (GLvoid*)sizeof(VERTICES[0].Position));
 	ExitOnGLError("ERROR: Could not set VAO attributes");
@@ -210,7 +229,7 @@ void Cube::Create()
 	ExitOnGLError("ERROR: Could not generate the vertex normal buffer");
 
 	glBindBuffer(GL_ARRAY_BUFFER, VertNormBuff);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Normals), Normals, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, Normals.size() * sizeof(Vector), &Normals[0], GL_STATIC_DRAW);
 	ExitOnGLError("ERROR: Could not bind the Vertex Normals to the VAO");
 	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Normals[0]), (GLvoid*)0);
 	ExitOnGLError("ERROR: Could not set VAO attributes");
@@ -218,7 +237,7 @@ void Cube::Create()
 	glGenBuffers(1, &TexBuffer);
 	ExitOnGLError("ERROR: Could not generate the texture buffer");
 	glBindBuffer(GL_ARRAY_BUFFER, TexBuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(TexTea), TexTea, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, TexTea.size() * sizeof(Vector), &TexTea[0], GL_STATIC_DRAW);
 	ExitOnGLError("ERROR: Could not bind the texture to the VAO");
 	glVertexAttribPointer(3, 3, GL_FLOAT, GL_TRUE, sizeof(TexTea[0]), (GLvoid*)0);
 	ExitOnGLError("ERROR: Could not set VAO attributes");
@@ -250,6 +269,19 @@ void Cube::Create()
 
 void Cube::CreateShadowPolygons()
 {
+    if(state.lightChanged){
+        int size  = VERTICES.size();
+        int i = 0;
+        while(i< size)
+        {
+            VERTICESCOPY[i] = VERTICES.at(i);
+            i++;
+        }
+
+        FindSilhouette(surfaceNorm, surfaceVertex,  INDICES, VERTICESCOPY, state.GetLightDirection(), countUniq);
+        CreateVerticesForQuad(state.GetLightDirection());
+        state.lightChanged = false;
+    }
 	GLenum ErrorCheckValue = glGetError();
  
 	ShadowShaderIds[0] = glCreateProgram();
@@ -279,7 +311,7 @@ void Cube::CreateShadowPolygons()
 	ExitOnGLError("ERROR: Could not gen buffers");
     glBindBuffer(GL_ARRAY_BUFFER, ShadowBufferIds[1]);
 	ExitOnGLError("ERROR: Could not bind buffers");
-    glBufferData(GL_ARRAY_BUFFER, sizeof(ShadowVertices[0])* countUniq, ShadowVertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex)* countUniq, &ShadowVertices[0], GL_STATIC_DRAW);
 	ExitOnGLError("ERROR: Could not set buffer data");
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(ShadowVertices[0]), (GLvoid*)0);
 	ExitOnGLError("ERROR: in glVertexAttribPointer");
@@ -288,15 +320,15 @@ void Cube::CreateShadowPolygons()
  
     glGenBuffers(1, &ShadowBufferIds[2]);
     glBindBuffer(GL_ARRAY_BUFFER, ShadowBufferIds[2]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(ShadowVertices[0])* countUniq, ShadowVertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex)* countUniq, &ShadowVertices[0], GL_STATIC_DRAW);
     glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(ShadowVertices[0]), (GLvoid*)sizeof(ShadowVertices[0].Position));
     glEnableVertexAttribArray(1);
 	ErrorCheckValue = glGetError();
 }
 
 
-void Cube::FindSilhouette(Vector* surfaceNormal, Vertex* surfaceVertex, 
-					  GLuint* indexBuf, Vertex* vertices, Vector lightPos, int size)
+void Cube::FindSilhouette(std::vector<Vector> surfaceNormal, std::vector<Vertex> surfaceVertex, 
+					  std::vector<GLuint> indexBuf, Vertex* vertices, Vector lightPos, int size)
 {
 	Vector light;
 	float dot = 0;
@@ -308,15 +340,16 @@ void Cube::FindSilhouette(Vector* surfaceNormal, Vertex* surfaceVertex,
 	for(int i = 0; i < size; i++)
 	{
 		CreateVector(surfaceVertex[i], lightPos, &light);
-		//cross product oflight dir and surf normal
+		//cross product of light dir and surf normal
 		dot = Dot(light, surfaceNormal[i]);
 		if(dot > 0)
 		{
 			index = i * 3;
 			//find the 3 vertices of this triangle
-			v1 = &vertices[indexBuf[index]];
-			v2 = &vertices[indexBuf[index+1]];
-			v3 = &vertices[indexBuf[index+2]];
+           
+            v1 = &vertices[indexBuf[index]];
+            v2 = &vertices[indexBuf[index+1]];
+            v3 = &vertices[indexBuf[index+2]];
 			//create the edge key: low vertex id - high vertex id
 			e1 = (v1->identity < v2->identity ? FormEdgeHash(v1->identity, v2->identity) : FormEdgeHash(v2->identity, v1->identity));
 			e2 = (v2->identity < v3->identity ? FormEdgeHash(v2->identity, v3->identity) : FormEdgeHash(v3->identity, v2->identity));
@@ -469,7 +502,7 @@ void Cube::Draw(int shader, int location)
 
 		glEnable(GL_CULL_FACE);
 		glCullFace(GL_BACK);
-		glFrontFace(GL_CW);
+		glFrontFace(GL_CCW);
 
 		ViewVect.v[0] = state.GetViewMatrix().m[2];
 		ViewVect.v[1] = state.GetViewMatrix().m[6];
@@ -505,7 +538,7 @@ void Cube::Draw(int shader, int location)
 			glBindTexture(GL_TEXTURE_2D, bumpTex); /* Binding of texture name */
 			glBindSampler(0, bumpSampler);
 			
-				glDrawElements(GL_TRIANGLES, sizeof(INDICES), GL_UNSIGNED_INT, (GLvoid*)0);
+				glDrawElements(GL_TRIANGLES, INDICES.size() * sizeof(GLuint), GL_UNSIGNED_INT, (GLvoid*)0);
 			
 			ExitOnGLError("ERROR: Could not draw the cube");
 			glBindTexture(GL_TEXTURE_2D, 0); /* Binding of texture name */
@@ -522,7 +555,15 @@ void Cube::Draw(int shader, int location)
 void Cube::DrawShadow()
 {
 	if(state.lightChanged){
-		FindSilhouette(surfaceNorm, surfaceVertex,  INDICES, VERTICES, state.GetLightDirection(), countUniq);
+        int size  = VERTICES.size();
+        int i = 0;
+        while(i< size)
+        {
+            VERTICESCOPY[i] = VERTICES.at(i);
+            i++;
+        }
+
+		FindSilhouette(surfaceNorm, surfaceVertex,  INDICES, VERTICESCOPY, state.GetLightDirection(), countUniq);
 		CreateVerticesForQuad(state.GetLightDirection());
 		state.lightChanged = false;
 	}
@@ -530,7 +571,7 @@ void Cube::DrawShadow()
     glDepthFunc(GL_LESS);
 	glBindBuffer(GL_ARRAY_BUFFER, ShadowBufferIds[1]);
 	ExitOnGLError("ERROR: Could not bind buffers");
-	glBufferData(GL_ARRAY_BUFFER, sizeof(ShadowVertices[0])* countUniq, ShadowVertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex)* countUniq, &ShadowVertices[0], GL_STATIC_DRAW);
 	ExitOnGLError("ERROR: Could not set buffer data");
 
 	glEnable(GL_STENCIL_TEST);
