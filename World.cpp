@@ -45,7 +45,7 @@ void World::CreateBodies()
 	grid->Create();
 	
 	world.push_back(cube);
-//	world.push_back(grid);
+	world.push_back(grid);
 	
 }
 

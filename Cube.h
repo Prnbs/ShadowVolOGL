@@ -59,7 +59,7 @@ public:
 	 void SetTexParams(string , GLuint &, GLuint &,GLuint );
 	 string FormEdgeHash(int e1, int e2);
 	 void FindSilhouette(std::vector<Vector> surfaceNormal, std::vector<Vertex> surfaceVertex, 
-         std::vector<GLuint> indexBuf, Vertex* vertices, Vector lightPos, int size);
+         std::vector<GLuint> indexBuf, Vertex* vertices, Vector lightPos);
 	 void ColourSilhouette();
 	 void CreateVerticesForQuad(Vector lightPos);
 };

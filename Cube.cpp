@@ -13,7 +13,7 @@ map<std::string, Edge> edgeTable;
 map<std::string, Edge>::iterator it;
 std::vector<Vertex> ShadowVertices;
 std::vector<Vertex> VERTICES;
-Vertex VERTICESCOPY[530];
+Vertex VERTICESCOPY[49990];
 std::vector<Vector> surfaceNorm;
 std::vector<Vertex> surfaceVertex;
 int countUniq = 0;
@@ -123,9 +123,9 @@ void Cube::Create()
         Vertex surfVertex = p1;
 		FindSurfaceVertex(p1, p2, p3, surfVertex);
         surfaceVertex.push_back(surfVertex);
-        countUniq++;
+        //countUniq++;
 	}
-	cout << "Surf count = " << countUniq << endl;
+	cout << "Surf count = " << surfaceVertex.size() << endl;
 	std::vector<Vector> Normals;
 	
 	for(int i=0; i<objData->normalCount; i++)
@@ -265,7 +265,7 @@ void Cube::CreateVerticesForQuad(Vector lightPos)
 		ShadowVertices.push_back(*(it->second.second));
 		ShadowINDICES.push_back(indexCtr+1);
 
-		TranslatePointOnVector(*(it->second.first), lightPos, result, 0.02f);
+		TranslatePointOnVector(*(it->second.first), lightPos, result, 10.0f);
 		ShadowVertices.push_back(*result);
 		ShadowINDICES.push_back(indexCtr+2);
 
@@ -273,17 +273,17 @@ void Cube::CreateVerticesForQuad(Vector lightPos)
 		ShadowINDICES.push_back(indexCtr+3);
 		ShadowINDICES.push_back(indexCtr+2);
 
-		TranslatePointOnVector(*(it->second.second), lightPos, result, 0.02f);
+		TranslatePointOnVector(*(it->second.second), lightPos, result, 10.0f);
 		ShadowVertices.push_back(*result);
 		indexCtr += 4;
 		
 		
 	}
 	
-	for(int i = 0; i < ShadowINDICES.size(); i+=3)
-	{
-		std::cout << ShadowINDICES[i] << "," << ShadowINDICES[i+1]  << ","  << ShadowINDICES[i+2] << std::endl; 
-	}
+    /*for(int i = 0; i < ShadowINDICES.size(); i+=3)
+    {
+    std::cout << ShadowINDICES[i] << "," << ShadowINDICES[i+1]  << ","  << ShadowINDICES[i+2] << std::endl; 
+    }*/
 	extrudedCount = ShadowVertices.size();
 }
 
@@ -298,7 +298,7 @@ void Cube::CreateShadowPolygons()
             i++;
         }
 
-        FindSilhouette(surfaceNorm, surfaceVertex,  INDICES, VERTICESCOPY, state.GetLightDirection(), countUniq);
+        FindSilhouette(surfaceNorm, surfaceVertex,  INDICES, VERTICESCOPY, state.GetLightDirection());
         CreateVerticesForQuad(state.GetLightDirection());
         state.lightChanged = false;
     }
@@ -356,7 +356,7 @@ void Cube::CreateShadowPolygons()
 
 
 void Cube::FindSilhouette(std::vector<Vector> surfaceNormal, std::vector<Vertex> surfaceVertex, 
-					  std::vector<GLuint> indexBuf, Vertex* vertices, Vector lightPos, int size)
+					  std::vector<GLuint> indexBuf, Vertex* vertices, Vector lightPos)
 {
 	Vector light;
 	float dot = 0;
@@ -365,14 +365,14 @@ void Cube::FindSilhouette(std::vector<Vector> surfaceNormal, std::vector<Vertex>
 	string e1, e2, e3;
 	//find light dir
 	edgeTable.clear();
-	for(int i = 0; i < size; i++)
+	for(int i = 0; i < surfaceVertex.size(); i++)
 	{
 		CreateVector(surfaceVertex[i], lightPos, &light);
 		Normalize(&light);
 		//cross product of light dir and surf normal
 		dot = Dot(light, surfaceNormal[i]);
 		float theta = acos (dot) * 180.0 / PI;
-		std::cout << "Theta - " << theta << std::endl;
+	//	std::cout << "Theta - " << theta << std::endl;
 		if(theta >= 0 && theta <= 90)
 		//if(dot > 0)
 		{
@@ -595,7 +595,7 @@ void Cube::DrawShadow()
             i++;
         }
 
-		FindSilhouette(surfaceNorm, surfaceVertex,  INDICES, VERTICESCOPY, state.GetLightDirection(), countUniq);
+		FindSilhouette(surfaceNorm, surfaceVertex,  INDICES, VERTICESCOPY, state.GetLightDirection());
 		CreateVerticesForQuad(state.GetLightDirection());
 		state.lightChanged = false;
 	}
@@ -603,7 +603,7 @@ void Cube::DrawShadow()
     glDepthFunc(GL_LESS);
 	glBindBuffer(GL_ARRAY_BUFFER, ShadowBufferIds[1]);
 	ExitOnGLError("ERROR: Could not bind buffers");
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex)* countUniq, &ShadowVertices[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER,  sizeof(Vertex)* ShadowVertices.size(), &ShadowVertices[0], GL_STATIC_DRAW);
 	ExitOnGLError("ERROR: Could not set buffer data");
 
 	glEnable(GL_STENCIL_TEST);
