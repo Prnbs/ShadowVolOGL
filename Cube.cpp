@@ -33,13 +33,11 @@ void printVector(Vector *v)
 	printf("%.2f  ", v->v[2] );
 } 
 
-
-
 void Cube::Create()
 {
 	ModelMatrix = IDENTITY_MATRIX;   
 	TranslateMatrix(&ModelMatrix, 0.0f, 0.0f, 0.0f);
-	ScaleMatrix(&ModelMatrix, 30.01f, 30.01f, 30.01f);
+	//ScaleMatrix(&ModelMatrix, 30.01f, 30.01f, 30.01f);
 
 	CubeRotation = 0;
 
@@ -51,7 +49,7 @@ void Cube::Create()
     objLoader *objData = new objLoader();
     //objData->load("Models\\bun_zipper.obj");
 
-     objData->load("Models\\cube.obj");
+     objData->load("Models\\teapot.obj");
 	
 	std::vector<Vector> TexTea;
 	float Color[4] = {0,0,0.5,1};
@@ -94,7 +92,7 @@ void Cube::Create()
 	}
 
 	int ctr = 0;
-	std::cout << objData->vertexCount << endl;
+	//std::cout << objData->vertexCount << endl;
 	for(int i=0; i<objData->faceCount; i++)
 	{
 		obj_face *o = objData->faceList[i];
@@ -148,18 +146,6 @@ void Cube::Create()
 	
 	glLinkProgram(ShaderIds[0]);
 	ExitOnGLError("ERROR: Could not link the shader program");
-
-    /*ShaderIds[3] = glCreateProgram();
-    ExitOnGLError("ERROR: Could not create the shader program");
-
-    ShaderIds[4] = LoadShader("Shaders\\Texture.fragment.glsl", GL_FRAGMENT_SHADER);
-    ShaderIds[5] = LoadShader("Shaders\\Texture.vertex.glsl", GL_VERTEX_SHADER);
-    glAttachShader(ShaderIds[3], ShaderIds[1]);
-    glAttachShader(ShaderIds[3], ShaderIds[2]);
-
-    glLinkProgram(ShaderIds[3]);
-    ExitOnGLError("ERROR: Could not link the shader program");*/
-
 	int counter = 0;
 	for(int i = 0; i < 4; i+=4)
 	{
@@ -265,7 +251,7 @@ void Cube::CreateVerticesForQuad(Vector lightPos)
 		ShadowVertices.push_back(*(it->second.second));
 		ShadowINDICES.push_back(indexCtr+1);
 
-		TranslatePointOnVector(*(it->second.first), lightPos, result, 10.0f);
+		TranslatePointOnVector(*(it->second.first), lightPos, result, 2.5f);
 		ShadowVertices.push_back(*result);
 		ShadowINDICES.push_back(indexCtr+2);
 
@@ -273,7 +259,7 @@ void Cube::CreateVerticesForQuad(Vector lightPos)
 		ShadowINDICES.push_back(indexCtr+3);
 		ShadowINDICES.push_back(indexCtr+2);
 
-		TranslatePointOnVector(*(it->second.second), lightPos, result, 10.0f);
+		TranslatePointOnVector(*(it->second.second), lightPos, result, 2.5f);
 		ShadowVertices.push_back(*result);
 		indexCtr += 4;
 		
@@ -410,7 +396,7 @@ void Cube::FindSilhouette(std::vector<Vector> surfaceNormal, std::vector<Vertex>
 				edgeTable[e3] = ed3;
 		}
 	}
-	cout << edgeTable.size() << endl;
+	//cout << edgeTable.size() << endl;
 }
 
 
@@ -509,79 +495,68 @@ void Cube::Destroy()
 
 void Cube::Draw(int shader, int location)
 {
-	/*float CubeAngle;
-	clock_t Now = clock();
-	if (state.GetLastTime() == 0)
-		state.SetLastTime(Now);
-	CubeRotation += 45.0f * (float)(Now - state.GetLastTime()) / CLOCKS_PER_SEC;
-	CubeRotation = 0;
-	CubeAngle = DegreesToRadians(CubeRotation);
-	state.SetLastTime(Now); */
+    /*float CubeAngle;
+    clock_t Now = clock();
+    if (state.GetLastTime() == 0)
+    state.SetLastTime(Now);
+    CubeRotation += 45.0f * (float)(Now - state.GetLastTime()) / CLOCKS_PER_SEC;
+    CubeRotation = 0;
+    CubeAngle = DegreesToRadians(CubeRotation);
+    state.SetLastTime(Now); 
+    RotateAboutY(&ModelMatrix, CubeAngle/100.0);*/
     location = 0;
 	if(shader == 3)
 	{
-		/*glDepthMask(0);*/
 		glDepthFunc(GL_EQUAL);
-       // glDisable(GL_DEPTH_TEST);
-        /*glEnable(GL_STENCIL_TEST);
-        glStencilFunc(GL_NOTEQUAL, 0x0, 0xff);
-        glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);*/
 	}
     else
         glDepthFunc(GL_LESS);
 	glUseProgram(ShaderIds[0]);
-		ExitOnGLError("ERROR: Could not use the shader program - Cube");
+	ExitOnGLError("ERROR: Could not use the shader program - Cube");
 
-		glEnable(GL_CULL_FACE);
-		glCullFace(GL_BACK);
-		glFrontFace(GL_CW);
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+	glFrontFace(GL_CW);
 
-		ViewVect.v[0] = state.GetViewMatrix().m[2];
-		ViewVect.v[1] = state.GetViewMatrix().m[6];
-		ViewVect.v[2] = state.GetViewMatrix().m[10];
+	ViewVect.v[0] = state.GetViewMatrix().m[2];
+	ViewVect.v[1] = state.GetViewMatrix().m[6];
+	ViewVect.v[2] = state.GetViewMatrix().m[10];
 
-		glUniformMatrix4fv(ModelMatrixUniformLocation[location], 1, GL_FALSE, ModelMatrix.m);
-		glUniformMatrix4fv(ViewMatrixUniformLocation[location], 1, GL_FALSE, state.GetViewMatrix().m);
-		glUniformMatrix4fv(ProjectionMatrixUniformLocation[location], 1, GL_FALSE, state.GetProjectionMatrix().m);
-		glUniform3fv(DirectionLightUniformLocation[location], 1, (state.GetLightDirection()).v);
-		glUniform4fv(DirectionLightColourUniformLocation[location], 1, DirectLightColour.Color);
-	//	glUniform3fv(ViewVectorUniformLocation[location], 1, ViewVect.v);
-        bool shiny = false;
-        if (shader == 3)
-            shiny = true;
-        glUniform1i(ShinyUniformLocation[location], shiny);
-		glUniform1i(gaussianTextureUnif[location], 0);
-		glUniform1i(bumpTextureUnif, 1);
+	glUniformMatrix4fv(ModelMatrixUniformLocation[location], 1, GL_FALSE, ModelMatrix.m);
+	glUniformMatrix4fv(ViewMatrixUniformLocation[location], 1, GL_FALSE, state.GetViewMatrix().m);
+	glUniformMatrix4fv(ProjectionMatrixUniformLocation[location], 1, GL_FALSE, state.GetProjectionMatrix().m);
+	glUniform3fv(DirectionLightUniformLocation[location], 1, (state.GetLightDirection()).v);
+	glUniform4fv(DirectionLightColourUniformLocation[location], 1, DirectLightColour.Color);
+    bool shiny = false;
+    if (shader == 3)
+        shiny = true;
+    glUniform1i(ShinyUniformLocation[location], shiny);
+	glUniform1i(gaussianTextureUnif[location], 0);
+	glUniform1i(bumpTextureUnif, 1);
 	  
-		Matrix MV = MultiplyMatrices(&(state.GetViewMatrix()), &ModelMatrix);
-		Matrix MVInv = TransposeMatrix(&(InverseMatrix(&MV)));
-		glUniformMatrix4fv(MVMatrixUniformLocation[location], 1, GL_FALSE, MVInv.m);
-		ExitOnGLError("ERROR: Could not set the shader uniforms");
-		//glEnable(GL_MULTISAMPLE);
+	Matrix MV = MultiplyMatrices(&(state.GetViewMatrix()), &ModelMatrix);
+	Matrix MVInv = TransposeMatrix(&(InverseMatrix(&MV)));
+	glUniformMatrix4fv(MVMatrixUniformLocation[location], 1, GL_FALSE, MVInv.m);
+	ExitOnGLError("ERROR: Could not set the shader uniforms");
+	//glEnable(GL_MULTISAMPLE);
 		
-		glBindVertexArray(BufferIds[0]);
-			ExitOnGLError("ERROR: Could not bind the VAO for drawing purposes");
+	glBindVertexArray(BufferIds[0]);
+		ExitOnGLError("ERROR: Could not bind the VAO for drawing purposes");
 			
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, teaTex); /* Binding of texture name */
-			glBindSampler(0, teaSampler);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, teaTex); /* Binding of texture name */
+		glBindSampler(0, teaSampler);
 
-			glActiveTexture(GL_TEXTURE1);
-			glBindTexture(GL_TEXTURE_2D, bumpTex); /* Binding of texture name */
-			glBindSampler(0, bumpSampler);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, bumpTex); /* Binding of texture name */
+		glBindSampler(0, bumpSampler);
 			
-				glDrawElements(GL_TRIANGLES, INDICES.size() * sizeof(GLuint), GL_UNSIGNED_INT, (GLvoid*)0);
+			glDrawElements(GL_TRIANGLES, INDICES.size() * sizeof(GLuint), GL_UNSIGNED_INT, (GLvoid*)0);
 			
-			ExitOnGLError("ERROR: Could not draw the cube");
-			glBindTexture(GL_TEXTURE_2D, 0); /* Binding of texture name */
-		glBindVertexArray(0);
+		ExitOnGLError("ERROR: Could not draw the cube");
+		glBindTexture(GL_TEXTURE_2D, 0); /* Binding of texture name */
+	glBindVertexArray(0);
 	glUseProgram(0);
-	if(shader == 3)
-	{
-		/*glDepthMask(1);
-		glDepthFunc(GL_LESS);*/
-	}
-	
 }
 
 void Cube::DrawShadow()
@@ -620,35 +595,24 @@ void Cube::DrawShadow()
     ExitOnGLError("glUniformMatrix4fv ProjMat");
     glBindVertexArray(ShadowBufferIds[0]);
 
-	if(state.drawExtruded)
+	if(!state.drawExtruded)
 		glColorMask(0,0,0,0); //disable all writing to color buffer
 
     glCullFace(GL_BACK);
     glStencilFunc(GL_ALWAYS, 0x0, 0xff);
     glStencilOp(GL_KEEP, GL_KEEP, GL_INCR);
     glFrontFace(GL_CCW);
-    //glDrawArrays(GL_TRIANGLES, 0, extrudedCount);
 	glDrawElements(GL_TRIANGLES, ShadowINDICES.size() * sizeof(GLuint), GL_UNSIGNED_INT, (GLvoid*)0);
     ExitOnGLError("draw");
-	//	glColorMask(1,1,1,1);
 			
 	glCullFace(GL_FRONT);
 	glStencilFunc(GL_ALWAYS, 0x0, 0xff);
 	glStencilOp(GL_KEEP, GL_KEEP, GL_DECR);
-//	glFrontFace(GL_CCW);
 	glDrawElements(GL_TRIANGLES, ShadowINDICES.size() * sizeof(GLuint), GL_UNSIGNED_INT, (GLvoid*)0);
-	//glDrawArrays(GL_TRIANGLES, 0, extrudedCount);
 	ExitOnGLError("draw");
-	if(state.drawExtruded)
+	if(!state.drawExtruded)
 		glColorMask(1,1,1,1);
 
-/*	glStencilFunc(GL_EQUAL, 0x0, 0xff);
-	glCullFace(GL_BACK);
-	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
-	glFrontFace(GL_CW);
-	glDrawArrays(GL_TRIANGLES, 0, countUniq);
-	ExitOnGLError("draw");*/
-		
 	glBindVertexArray(0);
 	glUseProgram(0);
 	
