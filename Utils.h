@@ -92,7 +92,7 @@ void TranslateMatrix(Matrix* m, float x, float y, float z);
 void CreateVector(Vector a, Vector b, Vector* res);
 void CreateVector(Vertex a, Vertex b, Vector* res);
 void CreateVector(Vertex a, Vector b, Vector* res);
-void CreateVector1(Vertex a, Vector b, Vector* res);
+void CreateVector(Vector b, Vertex a, Vector* res);
 void Add(Vector a, Vector b, Vector* res);
 float Dot(Vector a, Vector b);
 void Cross(Vector a, Vector b, Vector* res);

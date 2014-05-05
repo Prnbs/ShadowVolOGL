@@ -71,17 +71,21 @@ void TranslatePointOnVector(Vertex v, Vector vec, Vertex* result, float distance
 {
 	Vector slope = ORIGIN;
 	CreateVector(v, vec, &slope);
-    
+	Normalize(&slope);
+    Vector InvSlope;
+    ScaleVector(&slope, -1, &InvSlope);
 	/*std::cout << "\n slope\n";
 	PrintVector(slope);*/
 	//std::cout << "\n light dir\n";
 	//PrintVector(vec);
-	//result->Position[0] = v.Position[0] + (distance * slope.v[0]);
-	//result->Position[1] = v.Position[1] + (distance * slope.v[1]);
-	//result->Position[2] = v.Position[2] + (distance * slope.v[2]);
-	result->Position[0] = vec.v[0] - (distance * slope.v[0]);
-	result->Position[1] = vec.v[1] - (distance * slope.v[1]);
-	result->Position[2] = vec.v[2] - (distance * slope.v[2]);
+	result->Position[0] = v.Position[0] + (distance * slope.v[0]);
+	result->Position[1] = v.Position[1] + (distance * slope.v[1]);
+	result->Position[2] = v.Position[2] + (distance * slope.v[2]);
+	result->Position[3] = 1.0f;
+	result->identity = v.identity*10;
+	/*result->Position[0] = vec.v[0] - (distance * InvSlope.v[0]);
+	result->Position[1] = vec.v[1] - (distance * InvSlope.v[1]);
+	result->Position[2] = vec.v[2] - (distance * InvSlope.v[2]);*/
 }
 
 void RotateAboutY(Matrix* m, float angle)
@@ -250,7 +254,7 @@ void CreateVector(Vertex a, Vector b, Vector* res)
 	res->v[2] = a.Position[2] - b.v[2];
 }
 
-void CreateVector1(Vertex a, Vector b, Vector* res)
+void CreateVector(Vector b, Vertex a, Vector* res)
 {
 	res->v[0] = -1 * a.Position[0] + b.v[0];
 	res->v[1] = -1 * a.Position[1] + b.v[1];

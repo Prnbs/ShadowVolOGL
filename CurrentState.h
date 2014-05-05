@@ -14,6 +14,7 @@ public:
 				LastTime;
 	static Vector LightDir;
     static bool lightChanged;
+	static bool drawExtruded;
 
     Vector GetEye();
 	Vector GetLookAt();

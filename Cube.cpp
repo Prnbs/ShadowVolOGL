@@ -5,12 +5,15 @@
 #include <sstream>
 #include "objLoader.h"
 #include <vector>
+#include <cmath>
+
+#define PI 3.14159265
 
 map<std::string, Edge> edgeTable;
 map<std::string, Edge>::iterator it;
 std::vector<Vertex> ShadowVertices;
 std::vector<Vertex> VERTICES;
-Vertex VERTICESCOPY[49990];
+Vertex VERTICESCOPY[530];
 std::vector<Vector> surfaceNorm;
 std::vector<Vertex> surfaceVertex;
 int countUniq = 0;
@@ -30,38 +33,13 @@ void printVector(Vector *v)
 	printf("%.2f  ", v->v[2] );
 } 
 
-void Cube::CreateVerticesForQuad(Vector lightPos)
-{
-	int counter = 0;
-//	cout << "Edge table size = " << edgeTable.size() << endl;
-    ShadowVertices.clear();
-	for(it = edgeTable.begin(); it != edgeTable.end(); it++)
-	{
-		ShadowVertices.push_back(*(it->second.first));
-        Vector InvLightPos;
-        ScaleVector(&lightPos, -1, &InvLightPos);
-        Vertex result;
-		TranslatePointOnVector(*(it->second.first), InvLightPos, &result, 0.1f);
-        ShadowVertices.push_back(result);
-		ShadowVertices.push_back(*(it->second.second));
-        counter += 3;
 
-	/*	TranslatePointOnVector(*(it->second.first), lightPos, &ShadowVertices[counter], 0.1f);
-		counter++;
-		ShadowVertices[counter++] = *(it->second.second);
-		TranslatePointOnVector(*(it->second.second), lightPos, &ShadowVertices[counter], 0.1f);
-		counter++;*/
-	}
-	extrudedCount = counter;
-
-
-}
 
 void Cube::Create()
 {
 	ModelMatrix = IDENTITY_MATRIX;   
 	TranslateMatrix(&ModelMatrix, 0.0f, 0.0f, 0.0f);
-	ScaleMatrix(&ModelMatrix, 500.01f, 500.01f, 500.01f);
+	ScaleMatrix(&ModelMatrix, 30.01f, 30.01f, 30.01f);
 
 	CubeRotation = 0;
 
@@ -73,7 +51,7 @@ void Cube::Create()
     objLoader *objData = new objLoader();
     //objData->load("Models\\bun_zipper.obj");
 
-     objData->load("Models\\teapot.obj");
+     objData->load("Models\\cube.obj");
 	
 	std::vector<Vector> TexTea;
 	float Color[4] = {0,0,0.5,1};
@@ -107,7 +85,7 @@ void Cube::Create()
 		if(( X > 0 && Z > 0) || (Z > 0 && X < 0))
 			theta = atan2(Z, X);
 		if((X < 0 && Z < 0) || (X > 0 && Z < 0))
-			theta = (2 * 3.14159f) - atan2(-1*Z, X);
+			theta = (2 * PI) - atan2(-1*Z, X);
 
         Vector tempTex;
         tempTex.v[0] =  theta/(2 * 3.14159f);
@@ -116,7 +94,7 @@ void Cube::Create()
 	}
 
 	int ctr = 0;
-	cout << objData->vertexCount << endl;
+	std::cout << objData->vertexCount << endl;
 	for(int i=0; i<objData->faceCount; i++)
 	{
 		obj_face *o = objData->faceList[i];
@@ -156,6 +134,7 @@ void Cube::Create()
         normal.v[0] = (objData->normalList[i])->e[0];
         normal.v[1] = (objData->normalList[i])->e[1];
         normal.v[2] = (objData->normalList[i])->e[2];
+		Normalize(&normal);
 		Normals.push_back(normal);
 	}
     ExitOnGLError("ERROR: before create the shader program");
@@ -264,7 +243,48 @@ void Cube::Create()
     glGetError();
 	
 	CreateShadowPolygons();
+}
 
+void Cube::CreateVerticesForQuad(Vector lightPos)
+{
+	int counter = 0;
+//	cout << "Edge table size = " << edgeTable.size() << endl;
+    ShadowVertices.clear();
+	ShadowINDICES.clear();
+	int indexCtr = 0;
+	GLuint firstCol[2];
+	GLuint lastCol[2];
+	for(it = edgeTable.begin(); it != edgeTable.end(); it++)
+	{
+		counter++;
+		/*if(counter <=2)
+			continue;*/
+		Vertex *result = new Vertex();
+		ShadowVertices.push_back(*(it->second.first));
+		ShadowINDICES.push_back(indexCtr);
+		ShadowVertices.push_back(*(it->second.second));
+		ShadowINDICES.push_back(indexCtr+1);
+
+		TranslatePointOnVector(*(it->second.first), lightPos, result, 0.02f);
+		ShadowVertices.push_back(*result);
+		ShadowINDICES.push_back(indexCtr+2);
+
+		ShadowINDICES.push_back(indexCtr+1);
+		ShadowINDICES.push_back(indexCtr+3);
+		ShadowINDICES.push_back(indexCtr+2);
+
+		TranslatePointOnVector(*(it->second.second), lightPos, result, 0.02f);
+		ShadowVertices.push_back(*result);
+		indexCtr += 4;
+		
+		
+	}
+	
+	for(int i = 0; i < ShadowINDICES.size(); i+=3)
+	{
+		std::cout << ShadowINDICES[i] << "," << ShadowINDICES[i+1]  << ","  << ShadowINDICES[i+2] << std::endl; 
+	}
+	extrudedCount = ShadowVertices.size();
 }
 
 void Cube::CreateShadowPolygons()
@@ -305,24 +325,32 @@ void Cube::CreateShadowPolygons()
     glGenVertexArrays(1, &ShadowBufferIds[0]);
 	ExitOnGLError("ERROR: Could not generate VAO");
     glBindVertexArray(ShadowBufferIds[0]);
-	ExitOnGLError("ERROR: Could not bind VAO");
+		ExitOnGLError("ERROR: Could not bind VAO");
 
-	glGenBuffers(1, &ShadowBufferIds[1]);
-	ExitOnGLError("ERROR: Could not gen buffers");
-    glBindBuffer(GL_ARRAY_BUFFER, ShadowBufferIds[1]);
-	ExitOnGLError("ERROR: Could not bind buffers");
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex)* countUniq, &ShadowVertices[0], GL_STATIC_DRAW);
-	ExitOnGLError("ERROR: Could not set buffer data");
-	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(ShadowVertices[0]), (GLvoid*)0);
-	ExitOnGLError("ERROR: in glVertexAttribPointer");
-    glEnableVertexAttribArray(0);
+		glGenBuffers(2, &ShadowBufferIds[1]);
+		ExitOnGLError("ERROR: Could not gen buffers");
+		glBindBuffer(GL_ARRAY_BUFFER, ShadowBufferIds[1]);
+		ExitOnGLError("ERROR: Could not bind buffers");
+		glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex)* ShadowVertices.size(), &ShadowVertices[0], GL_STATIC_DRAW);
+		ExitOnGLError("ERROR: Could not set buffer data");
+		glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(ShadowVertices[0]), (GLvoid*)0);
+		ExitOnGLError("ERROR: in glVertexAttribPointer");
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,ShadowBufferIds[2]);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, ShadowINDICES.size() * sizeof(GLuint), &ShadowINDICES[0], GL_STATIC_DRAW);
+		ExitOnGLError("ERROR: Could not bind the IBO to the VAO");
+	//	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(ShadowVertices[0]), (GLvoid*)sizeof(ShadowVertices[0].Position));
+		ExitOnGLError("ERROR: Could not set VAO attributes");
+
+	glEnableVertexAttribArray(0);
+	//glEnableVertexAttribArray(1);
 	glBindVertexArray(0);
  
-    glGenBuffers(1, &ShadowBufferIds[2]);
+   /* glGenBuffers(1, &ShadowBufferIds[2]);
     glBindBuffer(GL_ARRAY_BUFFER, ShadowBufferIds[2]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex)* countUniq, &ShadowVertices[0], GL_STATIC_DRAW);
     glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(ShadowVertices[0]), (GLvoid*)sizeof(ShadowVertices[0].Position));
-    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(1);*/
 	ErrorCheckValue = glGetError();
 }
 
@@ -340,9 +368,13 @@ void Cube::FindSilhouette(std::vector<Vector> surfaceNormal, std::vector<Vertex>
 	for(int i = 0; i < size; i++)
 	{
 		CreateVector(surfaceVertex[i], lightPos, &light);
+		Normalize(&light);
 		//cross product of light dir and surf normal
 		dot = Dot(light, surfaceNormal[i]);
-		if(dot > 0)
+		float theta = acos (dot) * 180.0 / PI;
+		std::cout << "Theta - " << theta << std::endl;
+		if(theta >= 0 && theta <= 90)
+		//if(dot > 0)
 		{
 			index = i * 3;
 			//find the 3 vertices of this triangle
@@ -378,7 +410,7 @@ void Cube::FindSilhouette(std::vector<Vector> surfaceNormal, std::vector<Vertex>
 				edgeTable[e3] = ed3;
 		}
 	}
-//	cout << edgeTable.size() << endl;
+	cout << edgeTable.size() << endl;
 }
 
 
@@ -386,7 +418,7 @@ void Cube::ColourSilhouette()
 {
 	for(it = edgeTable.begin(); it != edgeTable.end(); it++)
 	{
-		it->second.first->Color[2] = 1.0f;
+		it->second.first->Color[0] = 1.0f;
 	}
 }
 
@@ -502,7 +534,7 @@ void Cube::Draw(int shader, int location)
 
 		glEnable(GL_CULL_FACE);
 		glCullFace(GL_BACK);
-		glFrontFace(GL_CCW);
+		glFrontFace(GL_CW);
 
 		ViewVect.v[0] = state.GetViewMatrix().m[2];
 		ViewVect.v[1] = state.GetViewMatrix().m[6];
@@ -578,7 +610,7 @@ void Cube::DrawShadow()
 	glClearStencil(0);
 	glStencilFunc(GL_ALWAYS, 0, 1);
 
-	glUseProgram(ShadowShaderIds[0]);
+	glUseProgram(ShadowShaderIds[0]);  
 	ExitOnGLError("use");
     glUniformMatrix4fv(ShadowModelMatrixUniformLocation, 1, GL_FALSE, ModelMatrix.m);
     ExitOnGLError("glUniformMatrix4fv ModelMat");
@@ -588,23 +620,27 @@ void Cube::DrawShadow()
     ExitOnGLError("glUniformMatrix4fv ProjMat");
     glBindVertexArray(ShadowBufferIds[0]);
 
-	glColorMask(0,0,0,0); //disable all writing to color buffer
+	if(state.drawExtruded)
+		glColorMask(0,0,0,0); //disable all writing to color buffer
+
     glCullFace(GL_BACK);
     glStencilFunc(GL_ALWAYS, 0x0, 0xff);
     glStencilOp(GL_KEEP, GL_KEEP, GL_INCR);
-    glFrontFace(GL_CW);
-    glDrawArrays(GL_TRIANGLES, 0, extrudedCount);
+    glFrontFace(GL_CCW);
+    //glDrawArrays(GL_TRIANGLES, 0, extrudedCount);
+	glDrawElements(GL_TRIANGLES, ShadowINDICES.size() * sizeof(GLuint), GL_UNSIGNED_INT, (GLvoid*)0);
     ExitOnGLError("draw");
 	//	glColorMask(1,1,1,1);
 			
-//	glDepthFunc(GL_GREATER);
 	glCullFace(GL_FRONT);
 	glStencilFunc(GL_ALWAYS, 0x0, 0xff);
 	glStencilOp(GL_KEEP, GL_KEEP, GL_DECR);
-	glFrontFace(GL_CW);
-	glDrawArrays(GL_TRIANGLES, 0, extrudedCount);
+//	glFrontFace(GL_CCW);
+	glDrawElements(GL_TRIANGLES, ShadowINDICES.size() * sizeof(GLuint), GL_UNSIGNED_INT, (GLvoid*)0);
+	//glDrawArrays(GL_TRIANGLES, 0, extrudedCount);
 	ExitOnGLError("draw");
-	glColorMask(1,1,1,1);
+	if(state.drawExtruded)
+		glColorMask(1,1,1,1);
 
 /*	glStencilFunc(GL_EQUAL, 0x0, 0xff);
 	glCullFace(GL_BACK);

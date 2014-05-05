@@ -23,7 +23,7 @@ public:
 	GLuint WorldCameraPosUniformLoc;
 	GLuint CubeMapTexUniLoc;
 	GLuint bumpTextureUnif;
-	GLuint ShadowBufferIds[3];
+	GLuint ShadowBufferIds[4];
 	GLuint ShadowShaderIds[3];
 	GLuint outRenderbuffer, outFramebuffer;
 	int err;
@@ -43,6 +43,7 @@ public:
 
 	 Vertex DirectLightColour;
 	 std::vector<GLuint> INDICES;
+	 std::vector<GLuint> ShadowINDICES;
 	 int vert;
 	 float CubeRotation;
 	 void Create();

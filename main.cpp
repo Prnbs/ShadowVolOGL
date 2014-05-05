@@ -47,9 +47,9 @@ World world;
 int main(int argc, char* argv[])
 {
 	Vector DirectLight;
-	DirectLight.v[0] = 10.1f;
-	DirectLight.v[1] = 10.4f;
-	DirectLight.v[2] = 0.1f;
+	DirectLight.v[0] = 5.0f;
+	DirectLight.v[1] = 10.0f;
+	DirectLight.v[2] = 0.0f;
 
 	state.SetLightDirection(DirectLight);
 	
@@ -221,8 +221,8 @@ void MouseFunction(int X, int Y)
 	RotateAboutY(&ViewMatrix, (float)diffX/6000.0f);
 	state.SetViewMatrix(ViewMatrix);
 
-	glutTimerFunc(1000, ResetMouse, 1);
-	*/
+	glutTimerFunc(1000, ResetMouse, 1);*/
+	
 }
 
 void ResetMouse(int Value)
@@ -298,6 +298,15 @@ void KeyboardFunction(unsigned char Key, int X, int Y)
 				state.SetLightDirection(LightDir);
                 state.lightChanged = true;
 				//PrintVector(LightDir);
+				break;
+			}
+		case 'g':
+		case 'G':
+			{
+				if(state.drawExtruded)
+					state.drawExtruded = false;
+				else
+					state.drawExtruded = true;
 				break;
 			}
 		case 'k':
