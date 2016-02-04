@@ -88,12 +88,6 @@
     <None Include="Shaders\AmbientLight.vertex.glsl">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="Shaders\Cubemap.fragment.glsl">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="Shaders\Cubemap.vertex.glsl">
-      <Filter>Resource Files</Filter>
-    </None>
     <None Include="Shaders\Phong.fragment.glsl">
       <Filter>Resource Files</Filter>
     </None>

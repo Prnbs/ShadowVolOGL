@@ -15,6 +15,7 @@ public:
 	static Vector LightDir;
     static bool lightChanged;
 	static bool drawExtruded;
+    static float extrudedLen;
 
     Vector GetEye();
 	Vector GetLookAt();

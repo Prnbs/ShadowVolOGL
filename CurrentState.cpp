@@ -10,6 +10,7 @@ clock_t CurrentState::LastTime = 0;
 Vector CurrentState::LightDir = ORIGIN;
 bool CurrentState::lightChanged = true;
 bool CurrentState::drawExtruded = false;
+float CurrentState::extrudedLen = 0.6f;
 
 Vector CurrentState::GetEye()
 {

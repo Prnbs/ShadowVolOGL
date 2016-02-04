@@ -355,6 +355,20 @@ void KeyboardFunction(unsigned char Key, int X, int Y)
 					meshON = false;
 				}
 			}
+        case 'e':
+        case 'E':
+            {	
+                 state.lightChanged = true;
+                 state.extrudedLen += 0.01;
+                 break;
+            }
+        case 'c':
+        case 'C':
+            {	
+                state.lightChanged = true;
+                state.extrudedLen -= 0.01;
+                break;
+            }
 		default:
 			break;
 	}
